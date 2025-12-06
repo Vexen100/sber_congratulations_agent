@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center mb-5">
+        <h1 class="display-4">🎉 Добро пожаловать!</h1>
+        <p class="lead">AI-агент для автоматической генерации поздравительных сообщений клиентам Сбера</p>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">👥 Клиенты</h5>
+                <p class="card-text">Управление базой клиентов и их данными</p>
+                <a href="/clients" class="btn btn-primary">Перейти к клиентам</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">🔄 API</h5>
+                <p class="card-text">REST API для интеграций и данных</p>
+                <a href="/api/clients" class="btn btn-success">API клиентов</a>
+                <a href="/api/stats" class="btn btn-info mt-2">Статистика</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">⚙️ Система</h5>
+                <p class="card-text">Информация о работе системы</p>
+                <a href="/health" class="btn btn-warning">Проверка здоровья</a>
+                <button onclick="showProjectInfo()" class="btn btn-secondary mt-2">О проекте</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12 mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>📊 Быстрый старт</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Запустите сервер: <code>uvicorn src.api.main:app --reload</code></li>
+                    <li>Заполните БД: <code>python src/scripts/seed_database.py</code></li>
+                    <li>Откройте в браузере: <a href="http://localhost:8000">http://localhost:8000</a></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showProjectInfo() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            alert(`Проект: ${data.project}\nВерсия: ${data.version}\nСтатус: ${data.status}`);
+        });
+}
+</script>
+{% endblock %}

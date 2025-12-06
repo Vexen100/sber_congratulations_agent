@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">📋 Клиенты</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Список клиентов (тестовые данные)</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Компания</th>
+                        <th>Сегмент</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>{{ client.id }}</td>
+                        <td>{{ client.first_name }} {{ client.last_name }}</td>
+                        <td>{{ client.email }}</td>
+                        <td>{{ client.company }}</td>
+                        <td>
+                            <span class="badge {% if client.segment == 'VIP' %}bg-danger{% elif client.segment == 'лояльный' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ client.segment }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="/" class="btn btn-secondary">← На главную</a>
+        <button class="btn btn-primary" onclick="fetchClients()">🔄 Обновить через API</button>
+    </div>
+</div>
+
+<script>
+async function fetchClients() {
+    const response = await fetch('/api/clients');
+    const data = await response.json();
+    alert(`Получено ${data.clients.length} клиентов через API`);
+    console.log(data);
+}
+</script>
+{% endblock %}
