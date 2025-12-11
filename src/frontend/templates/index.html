@@ -1,67 +1,497 @@
 {% extends "base.html" %}
 
+{% block title %}Главная - Sber Congratulations Agent{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-12 text-center mb-5">
-        <h1 class="display-4">🎉 Добро пожаловать!</h1>
-        <p class="lead">AI-агент для автоматической генерации поздравительных сообщений клиентам Сбера</p>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h5 class="card-title">👥 Клиенты</h5>
-                <p class="card-text">Управление базой клиентов и их данными</p>
-                <a href="/clients" class="btn btn-primary">Перейти к клиентам</a>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2">Добро пожаловать в Sber Congratulations Agent!</h1>
+                <p class="text-muted">Автоматическая система отправки персонализированных поздравлений клиентам Сбера.</p>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h5 class="card-title">🔄 API</h5>
-                <p class="card-text">REST API для интеграций и данных</p>
-                <a href="/api/clients" class="btn btn-success">API клиентов</a>
-                <a href="/api/stats" class="btn btn-info mt-2">Статистика</a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h5 class="card-title">⚙️ Система</h5>
-                <p class="card-text">Информация о работе системы</p>
-                <a href="/health" class="btn btn-warning">Проверка здоровья</a>
-                <button onclick="showProjectInfo()" class="btn btn-secondary mt-2">О проекте</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-12 mt-4">
-        <div class="card">
-            <div class="card-header">
-                <h5>📊 Быстрый старт</h5>
-            </div>
-            <div class="card-body">
-                <ol>
-                    <li>Запустите сервер: <code>uvicorn src.api.main:app --reload</code></li>
-                    <li>Заполните БД: <code>python src/scripts/seed_database.py</code></li>
-                    <li>Откройте в браузере: <a href="http://localhost:8000">http://localhost:8000</a></li>
-                </ol>
+            <div>
+                <button class="btn btn-primary" onclick="checkTodayEvents()">
+                    <i class="bi bi-search"></i> Проверить события
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Клиентов в базе</h5>
+                <h2 id="total-clients" class="mb-0">...</h2>
+                <small class="text-muted">Всего клиентов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">ДР сегодня</h5>
+                <h2 id="today-birthdays" class="mb-0">...</h2>
+                <small class="text-muted">Нужно поздравить</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">ДР на неделе</h5>
+                <h2 id="week-birthdays" class="mb-0">...</h2>
+                <small class="text-muted">В ближайшие 7 дней</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Отправлено</h5>
+                <h2 id="sent-total" class="mb-0">...</h2>
+                <small class="text-muted">Всего поздравлений</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дни рождения сегодня -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-check text-primary"></i>
+                    Дни рождения сегодня
+                    <span class="badge bg-primary ms-2" id="today-birthdays-badge">0</span>
+                </h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="generateAllToday()">
+                    <i class="bi bi-magic"></i> Сгенерировать всем
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="birthdays-today">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Загрузка данных...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние отправленные поздравления -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history text-primary"></i>
+                    Последние отправленные поздравления
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-congratulations">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Загрузка данных...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Быстрые действия -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning text-primary"></i>
+                    Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/clients" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-people"></i> Все клиенты
+                    </a>
+                    <a href="/send" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-send"></i> Ручная отправка
+                    </a>
+                    <a href="/congratulations" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-envelope"></i> История отправок
+                    </a>
+                    <button class="btn btn-outline-success text-start" onclick="testEmailSender()">
+                        <i class="bi bi-envelope-check"></i> Тест отправки email
+                    </button>
+                </div>
+                
+                <!-- Информация о системе -->
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="text-muted mb-2">Информация о системе</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Режим:</span>
+                            <span class="badge {% if debug_mode %}bg-warning{% else %}bg-success{% endif %}">
+                                {% if debug_mode %}Демо{% else %}Продакшн{% endif %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Генерация текста:</span>
+                            <span>Шаблоны</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Отправка email:</span>
+                            <span>{% if smtp_configured %}SMTP{% else %}Симуляция{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-function showProjectInfo() {
-    fetch('/api/stats')
-        .then(response => response.json())
-        .then(data => {
-            alert(`Проект: ${data.project}\nВерсия: ${data.version}\nСтатус: ${data.status}`);
-        });
-}
+    // Загрузка статистики
+    async function loadStats() {
+        try {
+            const [clientsRes, todayRes, weekRes, congratsRes] = await Promise.all([
+                ApiClient.get('/clients?limit=1'),
+                ApiClient.get('/clients/birthdays/today'),
+                ApiClient.get('/clients/birthdays/upcoming?days=7'),
+                ApiClient.get('/congratulations?limit=1')
+            ]);
+            
+            // Обновляем цифры
+            document.getElementById('total-clients').textContent = clientsRes.length || 0;
+            document.getElementById('today-birthdays').textContent = todayRes.total || 0;
+            document.getElementById('week-birthdays').textContent = weekRes.total || 0;
+            document.getElementById('sent-total').textContent = congratsRes.total || 0;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+        }
+    }
+    
+    // Загрузка дней рождения сегодня
+    async function loadTodayBirthdays() {
+        try {
+            const data = await ApiClient.get('/clients/birthdays/today');
+            const container = document.getElementById('birthdays-today');
+            const badge = document.getElementById('today-birthdays-badge');
+            
+            badge.textContent = data.total || 0;
+            
+            if (data.total === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Сегодня нет дней рождения.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            data.clients.forEach(client => {
+                const segmentClass = client.segment === 'VIP' ? 'client-vip' : 
+                                   client.segment === 'Лояльный' ? 'client-loyal' : 'client-new';
+                
+                html += `
+                <div class="list-group-item birthday-today ${segmentClass}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${client.full_name}</h6>
+                            <small class="text-muted">
+                                ${client.company || 'Компания не указана'} • ${client.position || 'Должность не указана'}
+                            </small>
+                        </div>
+                        <span class="badge bg-primary">ДР сегодня!</span>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-success" onclick="generateForClient(${client.client_id})">
+                            <i class="bi bi-magic"></i> Сгенерировать
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="sendToClient(${client.client_id})">
+                            <i class="bi bi-send"></i> Отправить
+                        </button>
+                        <a href="/clients/${client.client_id}" class="btn btn-sm btn-outline-secondary ms-2">
+                            <i class="bi bi-eye"></i> Подробнее
+                        </a>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки дней рождения:', error);
+            document.getElementById('birthdays-today').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Ошибка загрузки данных: ${error.message}
+                </div>
+            `;
+        }
+    }
+    
+    // Загрузка последних поздравлений
+    async function loadRecentCongratulations() {
+        try {
+            const data = await ApiClient.get('/congratulations?limit=5');
+            const container = document.getElementById('recent-congratulations');
+            
+            if (data.total === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Пока нет отправленных поздравлений.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            data.congratulations.forEach(congrat => {
+                const statusClass = congrat.status === 'sent' ? 'status-sent' :
+                                  congrat.status === 'pending' ? 'status-pending' : 'status-failed';
+                
+                html += `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${congrat.client_name}</h6>
+                            <p class="mb-1 small text-muted">${congrat.text_preview}</p>
+                            <small>
+                                <i class="bi bi-${congrat.sent_via === 'email' ? 'envelope' : 
+                                                  congrat.sent_via === 'telegram' ? 'telegram' : 'chat'}"></i>
+                                ${congrat.sent_via} • 
+                                ${formatDateTime(congrat.sent_at)}
+                            </small>
+                        </div>
+                        <span class="status-badge ${statusClass}">${congrat.status}</span>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки поздравлений:', error);
+        }
+    }
+    
+    // Генерация для конкретного клиента
+    async function generateForClient(clientId) {
+        try {
+            showLoading('Генерация поздравления...');
+            const data = await ApiClient.post(`/congratulations/generate?client_id=${clientId}`);
+            
+            showToast(`Поздравление сгенерировано для ${data.congratulation.client_name}`, 'success');
+            
+            // Показываем результат в модальном окне
+            showGeneratedText(data.congratulation);
+            
+        } catch (error) {
+            showToast('Ошибка генерации: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Генерация для всех с ДР сегодня
+    async function generateAllToday() {
+        try {
+            const confirm = window.confirm('Сгенерировать поздравления для всех клиентов с ДР сегодня?');
+            if (!confirm) return;
+            
+            showLoading('Генерация поздравлений...');
+            const data = await ApiClient.post('/congratulations/generate/today?max_clients=10');
+            
+            showToast(
+                `Сгенерировано ${data.generated} из ${data.processed} поздравлений`, 
+                data.generated === data.processed ? 'success' : 'warning'
+            );
+            
+            // Обновляем список
+            loadTodayBirthdays();
+            
+        } catch (error) {
+            showToast('Ошибка генерации: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Отправка клиенту
+    async function sendToClient(clientId) {
+        try {
+            // Сначала генерируем текст
+            showLoading('Генерация текста...');
+            const genData = await ApiClient.post(`/congratulations/generate?client_id=${clientId}`);
+            
+            // Затем отправляем
+            showLoading('Отправка поздравления...');
+            const sendData = await ApiClient.post(
+                `/congratulations/send?client_id=${clientId}&text=${encodeURIComponent(genData.congratulation.text)}&channel=email`
+            );
+            
+            showToast(sendData.message, 'success');
+            
+            // Обновляем списки
+            loadRecentCongratulations();
+            loadStats();
+            
+        } catch (error) {
+            showToast('Ошибка отправки: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Проверка событий
+    async function checkTodayEvents() {
+        try {
+            showLoading('Проверка событий...');
+            const data = await ApiClient.get('/clients/birthdays/today');
+            
+            showToast(`Найдено ${data.total} дней рождения сегодня`, 'info');
+            
+            // Обновляем список
+            loadTodayBirthdays();
+            loadStats();
+            
+        } catch (error) {
+            showToast('Ошибка проверки: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Тест отправки email
+    async function testEmailSender() {
+        try {
+            showLoading('Тестирование отправки email...');
+            
+            // Используем тестовый эндпоинт (нужно создать)
+            const response = await fetch('/api/v1/email/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Эндпоинт не найден');
+            }
+            
+            const data = await response.json();
+            showToast(data.message, data.status === 'success' ? 'success' : 'warning');
+            
+        } catch (error) {
+            showToast('Для тестирования email нужно настроить SMTP в .env', 'warning');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Показ сгенерированного текста
+    function showGeneratedText(congratulation) {
+        const modalHTML = `
+            <div class="modal fade" id="generatedTextModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-chat-text"></i>
+                                Сгенерированное поздравление
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <strong>Для:</strong> ${congratulation.client_name}<br>
+                                <strong>Тон:</strong> ${congratulation.tone}<br>
+                                <strong>Длина:</strong> ${congratulation.length} символов
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <pre style="white-space: pre-wrap; font-family: inherit;">${congratulation.text}</pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                            <button type="button" class="btn btn-primary" onclick="sendGeneratedText(${congratulation.client_id})">
+                                <i class="bi bi-send"></i> Отправить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Удаляем старый модал, если есть
+        const oldModal = document.getElementById('generatedTextModal');
+        if (oldModal) oldModal.remove();
+        
+        // Добавляем новый
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Показываем
+        const modal = new bootstrap.Modal(document.getElementById('generatedTextModal'));
+        modal.show();
+    }
+    
+    // Отправка сгенерированного текста
+    async function sendGeneratedText(clientId) {
+        const text = document.querySelector('#generatedTextModal pre').textContent;
+        
+        try {
+            showLoading('Отправка поздравления...');
+            const data = await ApiClient.post(
+                `/congratulations/send?client_id=${clientId}&text=${encodeURIComponent(text)}&channel=email`
+            );
+            
+            showToast(data.message, 'success');
+            
+            // Закрываем модальное окно
+            bootstrap.Modal.getInstance(document.getElementById('generatedTextModal')).hide();
+            
+            // Обновляем списки
+            loadRecentCongratulations();
+            loadStats();
+            
+        } catch (error) {
+            showToast('Ошибка отправки: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Загружаем все данные
+        loadStats();
+        loadTodayBirthdays();
+        loadRecentCongratulations();
+        
+        // Обновляем каждые 60 секунд
+        setInterval(() => {
+            loadStats();
+            loadTodayBirthdays();
+        }, 60000);
+    });
 </script>
 {% endblock %}

@@ -1,10 +1,15 @@
-# ============================================
-# PYTHON
-# ============================================
+# ИГНОРИРУЕМЫЕ ФАЙЛЫ ДЛЯ SBER CONGRATULATIONS AGENT
+
+### Python ###
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -23,159 +28,140 @@ wheels/
 *.egg
 MANIFEST
 
-# ============================================
-# ВИРТУАЛЬНОЕ ОКРУЖЕНИЕ
-# ============================================
-venv/
-env/
-.venv/
-venv*/
-env*/
-ENV/
+# PyInstaller
+*.manifest
+*.spec
 
-# ============================================
-# IDE
-# ============================================
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# ============================================
-# БАЗА ДАННЫХ И ЛОГИ
-# ============================================
-*.db
-*.sqlite
-*.sqlite3
-*.db-journal
-*.log
-logs/
-sqlite.db
-
-# ============================================
-# ОКРУЖЕНИЕ И КОНФИГУРАЦИЯ
-# ============================================
-.env
-.env.local
-.env.*.local
-*.env
-secrets.json
-config.local.yaml
-credentials.json
-
-# ============================================
-# СГЕНЕРИРОВАННЫЕ ФАЙЛЫ
-# ============================================
-src/frontend/static/generated/
-uploads/
-media/
-*.generated.*
-
-# ============================================
-# ФАЙЛЫ ПАРСИНГА И СБОРА ДАННЫХ
-# ============================================
-parsed_data/
-scraped/
-cache/
-*.cache
-temp_parsed/
-web_scraping_cache/
-
-# Временные файлы обработки ИНН
-temp_inn_data/
-*.temp.json
-parsed_companies/
-
-# Кэшированные ответы API
-api_cache/
-*.api_cache
-
-# ============================================
-# ТЕСТЫ И АНАЛИЗ КОДА
-# ============================================
-.pytest_cache/
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
+*.py,cover
 .hypothesis/
 .pytest_cache/
 
-# ============================================
-# ВРЕМЕННЫЕ ФАЙЛЫ
-# ============================================
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### БАЗЫ ДАННЫХ ###
+# SQLite файлы
+*.db
+*.db-journal
+*.sqlite3
+congratulations.db
+
+# Логи базы данных
+*.log
+
+### ЛОГИ ###
+logs/
+*.log
+
+### КОНФИГУРАЦИОННЫЕ ФАЙЛЫ ###
+# Файлы окружения (НЕ КОММИТИТЬ!)
+.env
+.env.local
+.env.development
+.env.production
+
+# Ключи API (НЕ КОММИТИТЬ!)
+*.key
+*.pem
+*.crt
+
+### ГЕНЕРИРУЕМЫЕ ФАЙЛЫ ###
+# Файлы, созданные при генерации email
+logs/emails/
+
+# Кэш
+.cache/
+
+# Временные файлы
 tmp/
 temp/
-*.tmp
-*.temp
 
-# ============================================
-# JUPYTER NOTEBOOK
-# ============================================
-.ipynb-checkpoints/
+### ПРОЕКТНЫЕ ФАЙЛЫ ###
+# Миграции (кроме папки структуры)
+!migrations/
+migrations/versions/*.py
 
-# ============================================
-# DOCKER (локальные настройки)
-# ============================================
+# Тестовые данные (если не хотим коммитить)
+data/test_*.json
+data/*.csv
+
+# Статические файлы, сгенерированные во время разработки
+src/frontend/static/generated/
+
+### ДОКУМЕНТАЦИЯ ###
+# Сгенерированная документация
+docs/_build/
+
+### ДОПОЛНИТЕЛЬНО ДЛЯ PYTHON ###
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+### ДЛЯ ДАННОГО ПРОЕКТА ###
+# Файлы тестов (временные)
+test_*.py
+check_installation.py
+
+# Docker
 docker-compose.override.yml
 
-# ============================================
-# ОПЕРАЦИОННАЯ СИСТЕМА
-# ============================================
-*.bak
-*.backup
-*.sublime-*
-
-# ============================================
-# ФАЙЛЫ ДЕМО И ТЕСТОВЫХ ДАННЫХ
-# ============================================
-# Исключаем большие тестовые датасеты
-test_data_large/
-*.large.json
-*.large.csv
-
-# Но разрешаем маленькие тестовые файлы
-!data/test_clients.csv
-!data/professional_holidays.json
-!data/okved_holidays_mapping.json
-!data/holidays.json
-!data/test_companies.csv
-
-# ============================================
-# ФАЙЛЫ УВЕДОМЛЕНИЙ И ОТПРАВКИ
-# ============================================
-sent_notifications/
-email_drafts/
-telegram_session/
-sms_logs/
-
-# ============================================
-# ЛОГИ НОВЫХ МОДУЛЕЙ
-# ============================================
-data_processor_logs/
-inn_parser_logs/
-web_scraper_logs/
-staff_notifier_logs/
-
-# ============================================
-# СЕССИИ И КУКИ
-# ============================================
+# Временные файлы сессий
 *.session
-*.session-journal
-
-# ============================================
-# ПРОЧИЕ ВРЕМЕННЫЕ ФАЙЛЫ
-# ============================================
-*.pid
-*.state
-*.lock
-*_cache
-.cache/
-.scrapy/
-.spyderproject
-.spyproject
+# Docker
+docker-compose.override.yml
+*.dockerignore

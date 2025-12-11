@@ -1,0 +1,640 @@
+{% extends "base.html" %}
+
+{% block title %}История отправок - Sber Congratulations Agent{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2">
+                    <i class="bi bi-clock-history"></i> История отправленных поздравлений
+                </h1>
+                <p class="text-muted">Просмотр и управление историей всех отправленных поздравлений.</p>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="loadCongratulations()">
+                    <i class="bi bi-arrow-clockwise"></i> Обновить
+                </button>
+                <button class="btn btn-outline-primary ms-2" onclick="exportToCSV()">
+                    <i class="bi bi-download"></i> Экспорт в CSV
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Статус</label>
+                        <select class="form-select" id="filterStatus" onchange="applyFilters()">
+                            <option value="">Все статусы</option>
+                            <option value="sent">Отправлено</option>
+                            <option value="pending">В ожидании</option>
+                            <option value="failed">Ошибка</option>
+                            <option value="simulated">Симуляция</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Канал</label>
+                        <select class="form-select" id="filterChannel" onchange="applyFilters()">
+                            <option value="">Все каналы</option>
+                            <option value="email">Email</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="sms">SMS</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Тип события</label>
+                        <select class="form-select" id="filterEventType" onchange="applyFilters()">
+                            <option value="">Все типы</option>
+                            <option value="birthday">День рождения</option>
+                            <option value="professional">Профессиональный</option>
+                            <option value="holiday">Праздник</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Период</label>
+                        <select class="form-select" id="filterPeriod" onchange="applyFilters()">
+                            <option value="all">За всё время</option>
+                            <option value="today">Сегодня</option>
+                            <option value="week">Неделя</option>
+                            <option value="month">Месяц</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-muted">Всего отправлено</h5>
+                <h2 id="totalSent">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-muted">Успешно</h5>
+                <h2 id="successSent" class="text-success">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-muted">С ошибкой</h5>
+                <h2 id="failedSent" class="text-danger">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-muted">Открыто писем</h5>
+                <h2 id="openedSent" class="text-info">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица истории -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">История отправок</h5>
+                <small class="text-muted" id="congratulationsCount">Загрузка...</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Дата</th>
+                                <th>Клиент</th>
+                                <th>Тип</th>
+                                <th>Канал</th>
+                                <th>Статус</th>
+                                <th>Открыто</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="congratulationsTableBody">
+                            <!-- Данные будут загружены через JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Пагинация -->
+                <nav aria-label="Навигация по страницам">
+                    <ul class="pagination justify-content-center" id="congratulationsPagination">
+                        <!-- Пагинация будет добавлена через JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей -->
+<div class="modal fade" id="congratulationDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope-open"></i> Детали отправки
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="congratulationDetailsContent">
+                    <!-- Данные будут загружены динамически -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="resendCongratulation()">
+                    <i class="bi bi-send"></i> Отправить повторно
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Глобальные переменные
+    let allCongratulations = [];
+    let filteredCongratulations = [];
+    let currentCongratsPage = 1;
+    const congratsPerPage = 15;
+    let currentCongratulationId = null;
+    
+    // Загрузка истории отправок
+    async function loadCongratulations() {
+        try {
+            showLoading('Загрузка истории отправок...');
+            
+            // Загружаем все отправки
+            const data = await ApiClient.get('/congratulations?limit=1000');
+            allCongratulations = data.congratulations || [];
+            filteredCongratulations = [...allCongratulations];
+            
+            // Обновляем статистику
+            updateCongratulationsStats();
+            
+            // Применяем фильтры
+            applyFilters();
+            
+            hideLoading();
+            
+        } catch (error) {
+            hideLoading();
+            showToast('Ошибка загрузки истории: ' + error.message, 'error');
+        }
+    }
+    
+    // Обновление статистики
+    function updateCongratulationsStats() {
+        const total = allCongratulations.length;
+        const success = allCongratulations.filter(c => c.status === 'sent').length;
+        const failed = allCongratulations.filter(c => c.status === 'failed').length;
+        const opened = allCongratulations.filter(c => c.opened).length;
+        
+        document.getElementById('totalSent').textContent = total;
+        document.getElementById('successSent').textContent = success;
+        document.getElementById('failedSent').textContent = failed;
+        document.getElementById('openedSent').textContent = opened;
+    }
+    
+    // Применение фильтров
+    function applyFilters() {
+        const statusFilter = document.getElementById('filterStatus').value;
+        const channelFilter = document.getElementById('filterChannel').value;
+        const eventTypeFilter = document.getElementById('filterEventType').value;
+        const periodFilter = document.getElementById('filterPeriod').value;
+        
+        // Начинаем со всех отправок
+        filteredCongratulations = [...allCongratulations];
+        
+        // Фильтр по статусу
+        if (statusFilter) {
+            filteredCongratulations = filteredCongratulations.filter(c => c.status === statusFilter);
+        }
+        
+        // Фильтр по каналу
+        if (channelFilter) {
+            filteredCongratulations = filteredCongratulations.filter(c => c.sent_via === channelFilter);
+        }
+        
+        // Фильтр по типу события
+        if (eventTypeFilter) {
+            filteredCongratulations = filteredCongratulations.filter(c => c.event_type === eventTypeFilter);
+        }
+        
+        // Фильтр по периоду
+        if (periodFilter !== 'all') {
+            const now = new Date();
+            let startDate = new Date();
+            
+            switch (periodFilter) {
+                case 'today':
+                    startDate.setHours(0, 0, 0, 0);
+                    break;
+                case 'week':
+                    startDate.setDate(now.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setMonth(now.getMonth() - 1);
+                    break;
+            }
+            
+            filteredCongratulations = filteredCongratulations.filter(c => {
+                const sentDate = new Date(c.sent_at);
+                return sentDate >= startDate;
+            });
+        }
+        
+        // Отображаем первую страницу
+        displayCongratulationsPage(1);
+    }
+    
+    // Отображение страницы с отправками
+    function displayCongratulationsPage(page) {
+        currentCongratsPage = page;
+        
+        // Рассчитываем индексы
+        const startIndex = (page - 1) * congratsPerPage;
+        const endIndex = startIndex + congratsPerPage;
+        const pageCongratulations = filteredCongratulations.slice(startIndex, endIndex);
+        
+        // Обновляем таблицу
+        const tbody = document.getElementById('congratulationsTableBody');
+        tbody.innerHTML = '';
+        
+        if (pageCongratulations.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="bi bi-inbox display-6"></i>
+                            <p class="mt-2">Отправки не найдены</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            pageCongratulations.forEach(item => {
+                // Форматируем дату
+                const sentDate = new Date(item.sent_at);
+                const formattedDate = sentDate.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Классы для статуса
+                const statusClass = item.status === 'sent' ? 'status-sent' :
+                                  item.status === 'pending' ? 'status-pending' :
+                                  item.status === 'simulated' ? 'bg-secondary' : 'status-failed';
+                
+                // Иконка канала
+                const channelIcon = item.sent_via === 'email' ? 'bi-envelope' :
+                                  item.sent_via === 'telegram' ? 'bi-telegram' : 'bi-chat';
+                
+                // Строка таблицы
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${formattedDate}</td>
+                    <td>${item.client_name}</td>
+                    <td>
+                        <span class="badge bg-info">${item.event_type || 'birthday'}</span>
+                    </td>
+                    <td>
+                        <i class="bi ${channelIcon}"></i> ${item.sent_via}
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">${item.status}</span>
+                    </td>
+                    <td>
+                        ${item.opened ? 
+                          '<i class="bi bi-check-circle text-success" title="Открыто"></i>' : 
+                          '<i class="bi bi-dash-circle text-muted" title="Не открыто"></i>'}
+                        ${item.opened_at ? `<br><small>${new Date(item.opened_at).toLocaleDateString('ru-RU')}</small>` : ''}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewCongratulationDetails(${item.id})">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success ms-1" onclick="resendSpecificCongratulation(${item.id})">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Обновляем пагинацию
+        updateCongratulationsPagination();
+        
+        // Обновляем счетчик
+        document.getElementById('congratulationsCount').textContent = 
+            `Показано ${pageCongratulations.length} из ${filteredCongratulations.length} отправок`;
+    }
+    
+    // Обновление пагинации
+    function updateCongratulationsPagination() {
+        const totalPages = Math.ceil(filteredCongratulations.length / congratsPerPage);
+        const pagination = document.getElementById('congratulationsPagination');
+        pagination.innerHTML = '';
+        
+        // Предыдущая страница
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentCongratsPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `
+            <a class="page-link" href="#" onclick="displayCongratulationsPage(${currentCongratsPage - 1})">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        `;
+        pagination.appendChild(prevLi);
+        
+        // Страницы
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentCongratsPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentCongratsPage ? 'active' : ''}`;
+            li.innerHTML = `
+                <a class="page-link" href="#" onclick="displayCongratulationsPage(${i})">${i}</a>
+            `;
+            pagination.appendChild(li);
+        }
+        
+        // Следующая страница
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentCongratsPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `
+            <a class="page-link" href="#" onclick="displayCongratulationsPage(${currentCongratsPage + 1})">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        `;
+        pagination.appendChild(nextLi);
+    }
+    
+    // Просмотр деталей отправки
+    async function viewCongratulationDetails(congratulationId) {
+        try {
+            showLoading('Загрузка деталей...');
+            
+            const data = await ApiClient.get(`/congratulations/${congratulationId}`);
+            currentCongratulationId = congratulationId;
+            
+            // Форматируем даты
+            const sentDate = new Date(data.sent_at);
+            const formattedSentDate = sentDate.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const openedDate = data.opened_at ? new Date(data.opened_at) : null;
+            const formattedOpenedDate = openedDate ? openedDate.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : null;
+            
+            // Статус
+            const statusClass = data.status === 'sent' ? 'bg-success' :
+                              data.status === 'pending' ? 'bg-warning' :
+                              data.status === 'simulated' ? 'bg-secondary' : 'bg-danger';
+            
+            // Формируем контент
+            let content = `
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Клиент</label>
+                            <p class="fs-5">${data.client.name}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <p class="fs-5">${data.client.email || '—'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Тип события</label>
+                            <p>${data.event_type}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Канал отправки</label>
+                            <p>
+                                <i class="bi ${data.sent_via === 'email' ? 'bi-envelope' : 
+                                              data.sent_via === 'telegram' ? 'bi-telegram' : 'bi-chat'}"></i>
+                                ${data.sent_via}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Статус</label>
+                            <p><span class="badge ${statusClass}">${data.status}</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Отправлено</label>
+                            <p>${formattedSentDate}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Открыто</label>
+                            <p>
+                                ${data.opened ? 
+                                  `<i class="bi bi-check-circle text-success"></i> ${formattedOpenedDate}` : 
+                                  '<i class="bi bi-dash-circle text-muted"></i> Не открыто'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Текст поздравления</label>
+                    <div class="card">
+                        <div class="card-body">
+                            <pre style="white-space: pre-wrap; font-family: inherit; max-height: 300px; overflow-y: auto;">${data.text}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('congratulationDetailsContent').innerHTML = content;
+            
+            hideLoading();
+            
+            // Показываем модальное окно
+            const modal = new bootstrap.Modal(document.getElementById('congratulationDetailsModal'));
+            modal.show();
+            
+        } catch (error) {
+            hideLoading();
+            showToast('Ошибка загрузки деталей: ' + error.message, 'error');
+        }
+    }
+    
+    // Повторная отправка
+    async function resendCongratulation() {
+        if (!currentCongratulationId) return;
+        
+        try {
+            showLoading('Повторная отправка...');
+            
+            // Получаем данные отправки
+            const data = await ApiClient.get(`/congratulations/${currentCongratulationId}`);
+            
+            // Отправляем повторно
+            const sendData = await ApiClient.post(
+                `/congratulations/send?client_id=${data.client.id}&text=${encodeURIComponent(data.text)}&channel=${data.sent_via}`
+            );
+            
+            hideLoading();
+            
+            // Закрываем модальное окно
+            bootstrap.Modal.getInstance(document.getElementById('congratulationDetailsModal')).hide();
+            
+            showToast(sendData.message, 'success');
+            
+            // Обновляем список
+            loadCongratulations();
+            
+        } catch (error) {
+            hideLoading();
+            showToast('Ошибка повторной отправки: ' + error.message, 'error');
+        }
+    }
+    
+    // Повторная отправка конкретной записи
+    async function resendSpecificCongratulation(congratulationId) {
+        const confirmSend = window.confirm('Отправить это поздравление повторно?');
+        if (!confirmSend) return;
+        
+        try {
+            showLoading('Повторная отправка...');
+            
+            // Получаем данные отправки
+            const data = await ApiClient.get(`/congratulations/${congratulationId}`);
+            
+            // Отправляем повторно
+            const sendData = await ApiClient.post(
+                `/congratulations/send?client_id=${data.client.id}&text=${encodeURIComponent(data.text)}&channel=${data.sent_via}`
+            );
+            
+            hideLoading();
+            showToast(sendData.message, 'success');
+            
+            // Обновляем список
+            loadCongratulations();
+            
+        } catch (error) {
+            hideLoading();
+            showToast('Ошибка повторной отправки: ' + error.message, 'error');
+        }
+    }
+    
+    // Экспорт в CSV
+    function exportToCSV() {
+        if (filteredCongratulations.length === 0) {
+            showToast('Нет данных для экспорта', 'warning');
+            return;
+        }
+        
+        // Создаем заголовки CSV
+        const headers = ['ID', 'Дата', 'Клиент', 'Email', 'Тип', 'Канал', 'Статус', 'Открыто', 'Текст (первые 100 символов)'];
+        
+        // Создаем строки данных
+        const rows = filteredCongratulations.map(item => {
+            const date = new Date(item.sent_at).toLocaleDateString('ru-RU');
+            const opened = item.opened ? 'Да' : 'Нет';
+            const textPreview = item.text_preview ? item.text_preview.replace(/"/g, '""') : '';
+            
+            return [
+                item.id,
+                date,
+                item.client_name,
+                '', // Email нет в данных, нужно было бы его получить
+                item.event_type,
+                item.sent_via,
+                item.status,
+                opened,
+                `"${textPreview}"`
+            ];
+        });
+        
+        // Объединяем заголовки и данные
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        // Создаем Blob и ссылку для скачивания
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        link.href = url;
+        link.setAttribute('download', `congratulations_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('Данные экспортированы в CSV', 'success');
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCongratulations();
+    });
+</script>
+{% endblock %}

@@ -4,30 +4,452 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Sber Congratulations Agent{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --sber-blue: #1a6dcc;
+            --sber-green: #21a038;
+            --sber-light-blue: #4a9eff;
+            --sber-gray: #f8f9fa;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+            padding-top: 20px;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--sber-blue) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--sber-blue);
+            border-color: var(--sber-blue);
+        }
+        
+        .btn-primary:hover {
+            background-color: #1557a3;
+            border-color: #1557a3;
+        }
+        
+        .btn-success {
+            background-color: var(--sber-green);
+            border-color: var(--sber-green);
+        }
+        
+        .btn-outline-primary {
+            color: var(--sber-blue);
+            border-color: var(--sber-blue);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--sber-blue);
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--sber-gray);
+            font-weight: 600;
+            color: var(--sber-blue);
+            border-radius: 12px 12px 0 0 !important;
+        }
+        
+        .stat-card {
+            border-left: 4px solid var(--sber-blue);
+            padding-left: 15px;
+        }
+        
+        .birthday-today {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .birthday-upcoming {
+            background-color: #e8f4ff;
+            border-left: 4px solid var(--sber-light-blue);
+        }
+        
+        .status-badge {
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        .status-sent {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .client-vip {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .client-loyal {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .client-new {
+            border-left: 4px solid #6c757d;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .logo {
+            font-weight: 700;
+            color: var(--sber-blue);
+        }
+        
+        .logo span {
+            color: var(--sber-green);
+        }
+        
+        .demo-banner {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #333;
+            padding: 10px;
+            text-align: center;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
         <div class="container">
-            <a class="navbar-brand" href="/">🎉 Sber Congratulations Agent</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="/">Главная</a>
-                <a class="nav-link" href="/clients">Клиенты</a>
-                <a class="nav-link" href="/health">API Health</a>
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-balloon-heart-fill"></i>
+                <span class="logo">Sber<span>Congratulations</span></span>
+                <small class="text-muted ms-2" style="font-size: 0.7em;">Agent</small>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house-door"></i> Главная
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clients">
+                            <i class="bi bi-people"></i> Клиенты
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/congratulations">
+                            <i class="bi bi-envelope"></i> Поздравления
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/send">
+                            <i class="bi bi-send"></i> Отправить
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs" target="_blank">
+                            <i class="bi bi-code-slash"></i> API
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
-    
+
+    <!-- Основной контент -->
     <div class="container">
-        {% block content %}{% endblock %}
+        <!-- Баннер демо-режима (показывается только в режиме отладки) -->
+        {% if debug_mode %}
+        <div class="demo-banner">
+            <i class="bi bi-info-circle"></i>
+            ДЕМО-РЕЖИМ: Все данные тестовые, отправка email симулируется.
+        </div>
+        {% endif %}
+        
+        <!-- Уведомления -->
+        <div class="toast-container">
+            <!-- Тосты будут добавляться динамически -->
+        </div>
+        
+        {% block content %}
+        <!-- Контент страницы будет здесь -->
+        {% endblock %}
     </div>
-    
-    <footer class="mt-5 py-3 bg-light text-center">
+
+    <!-- Подвал -->
+    <footer class="mt-5 py-4 bg-white border-top">
         <div class="container">
-            <p class="mb-0">Sber Congratulations Agent &copy; 2024</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="logo">Sber<span>Congratulations</span> Agent</h6>
+                    <p class="text-muted small">
+                        Система автоматической отправки персонализированных поздравлений.
+                        <br>Разработано для хакатона ОПД 2025.
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted small">
+                        <i class="bi bi-github"></i> 
+                        <a href="https://github.com/your-username/sber-congratulations-agent" 
+                           target="_blank" class="text-decoration-none">
+                            GitHub репозиторий
+                        </a>
+                        <br>
+                        <i class="bi bi-shield-check"></i> 
+                        Статус системы: <span id="system-status" class="badge bg-success">Работает</span>
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
-    
+
+    <!-- Overlay для загрузки -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <p class="mt-2" id="loadingText">Загрузка...</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle с Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Утилиты -->
+    <script>
+        // Глобальные переменные
+        const API_BASE = '/api/v1';
+        const DEBUG_MODE = {% if debug_mode %}true{% else %}false{% endif %};
+        
+        // Утилиты для работы с API
+        class ApiClient {
+            static async get(endpoint) {
+                showLoading('Загрузка данных...');
+                try {
+                    const response = await fetch(API_BASE + endpoint);
+                    const data = await response.json();
+                    hideLoading();
+                    return data;
+                } catch (error) {
+                    hideLoading();
+                    showToast('Ошибка загрузки: ' + error.message, 'error');
+                    throw error;
+                }
+            }
+            
+            static async post(endpoint, body = {}) {
+                showLoading('Отправка данных...');
+                try {
+                    const response = await fetch(API_BASE + endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+                    hideLoading();
+                    return data;
+                } catch (error) {
+                    hideLoading();
+                    showToast('Ошибка отправки: ' + error.message, 'error');
+                    throw error;
+                }
+            }
+            
+            static async delete(endpoint) {
+                showLoading('Удаление...');
+                try {
+                    const response = await fetch(API_BASE + endpoint, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    hideLoading();
+                    return data;
+                } catch (error) {
+                    hideLoading();
+                    showToast('Ошибка удаления: ' + error.message, 'error');
+                    throw error;
+                }
+            }
+        }
+        
+        // Утилиты для UI
+        function showLoading(text = 'Загрузка...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            
+            // Определяем цвет в зависимости от типа
+            let bgClass = 'bg-primary';
+            let icon = 'bi-info-circle';
+            
+            if (type === 'success') {
+                bgClass = 'bg-success';
+                icon = 'bi-check-circle';
+            } else if (type === 'error') {
+                bgClass = 'bg-danger';
+                icon = 'bi-exclamation-circle';
+            } else if (type === 'warning') {
+                bgClass = 'bg-warning';
+                icon = 'bi-exclamation-triangle';
+            }
+            
+            // Создаем тост
+            const toastId = 'toast-' + Date.now();
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${icon} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                                data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем в контейнер
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+            
+            // Показываем тост
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+            toast.show();
+            
+            // Удаляем после скрытия
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                this.remove();
+            });
+        }
+        
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Форматирование даты и времени
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Проверка статуса системы
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                const statusElement = document.getElementById('system-status');
+                if (data.database === 'healthy') {
+                    statusElement.className = 'badge bg-success';
+                    statusElement.textContent = 'Работает';
+                } else {
+                    statusElement.className = 'badge bg-danger';
+                    statusElement.textContent = 'Ошибка БД';
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('system-status');
+                statusElement.className = 'badge bg-danger';
+                statusElement.textContent = 'Оффлайн';
+            }
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем статус системы
+            checkSystemStatus();
+            
+            // Обновляем статус каждые 30 секунд
+            setInterval(checkSystemStatus, 30000);
+            
+            // Инициализируем все тултипы
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
